@@ -7,6 +7,7 @@ import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -32,11 +33,14 @@ public class MainActivity extends AppCompatActivity {
 
     @InjectView(R.id.textView)
     TextView textView;
-
-    private boolean hasFlash;
+    /**
+     * Start without a delay, Vibrate for 100 milliseconds, Sleep for 1000 milliseconds
+     */
+    long[] vibrationPattern = {0, 100, 1000};
     private CameraManager mCameraManager;
     private String mCameraId;
     private boolean isTorchOn;
+    private Vibrator vibrator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         requestRecordAudioPermission();
         detectFlashSupport();
+        getVibrator();
     }
 
     private void requestRecordAudioPermission() {
@@ -126,10 +131,12 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         textView.setText("" + pitchInHz);
-                        if (pitchInHz > 1300) {
+                        if (pitchInHz > 1400) {
                             turnOnFlashLight();
+                            startVibration();
                         } else {
                             turnOffFlashLight();
+                            stopVibration();
                         }
                     }
                 });
@@ -141,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void detectFlashSupport() {
-        hasFlash = getApplicationContext().getPackageManager()
+        boolean hasFlash = getApplicationContext().getPackageManager()
                 .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 
         if (!hasFlash) {
@@ -201,4 +208,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    void getVibrator() {
+        // Get instance of Vibrator from current Context
+        if (vibrator == null) {
+            vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        }
+    }
+
+    void startVibration() {
+        vibrator.vibrate(vibrationPattern, 0);
+    }
+
+    void stopVibration() {
+        vibrator.cancel();
+    }
 }
