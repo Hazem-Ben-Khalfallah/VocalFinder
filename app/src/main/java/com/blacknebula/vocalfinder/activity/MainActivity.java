@@ -1,15 +1,16 @@
 package com.blacknebula.vocalfinder.activity;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
-import android.media.AudioFormat;
-import android.media.AudioRecord;
-import android.media.MediaRecorder;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.TextView;
 
 import com.blacknebula.vocalfinder.R;
@@ -26,13 +27,16 @@ import be.tarsos.dsp.pitch.PitchProcessor;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class MainActivity extends AppCompatActivity {
 
-    final int SAMPLE_RATE = 44100; // The sampling rate
-    String LOG_TAG = "VoiceFinder";
     @InjectView(R.id.textView)
     TextView textView;
-    boolean mShouldContinue; // Indicates if recording / playback should stop
+
+    private boolean hasFlash;
+    private CameraManager mCameraManager;
+    private String mCameraId;
+    private boolean isTorchOn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         requestRecordAudioPermission();
+        detectFlashSupport();
     }
 
     private void requestRecordAudioPermission() {
@@ -76,6 +81,9 @@ public class MainActivity extends AppCompatActivity {
                     // No explanation needed, we can request the permission.
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
                 }
+            } else {
+                // Permission already granted
+                detectSound();
             }
         }
     }
@@ -118,6 +126,11 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         textView.setText("" + pitchInHz);
+                        if (pitchInHz > 1300) {
+                            turnOnFlashLight();
+                        } else {
+                            turnOffFlashLight();
+                        }
                     }
                 });
             }
@@ -127,52 +140,65 @@ public class MainActivity extends AppCompatActivity {
         new Thread(dispatcher, "Audio Dispatcher").start();
     }
 
+    void detectFlashSupport() {
+        hasFlash = getApplicationContext().getPackageManager()
+                .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 
-    void recordAudio() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_AUDIO);
+        if (!hasFlash) {
+            // device doesn't support flash
+            ViewUtils.openDialog(this, R.string.flash_not_supported_title, R.string.flash_not_supported_message, new ViewUtils.onClickListener() {
+                @Override
+                public void onPositiveClick() {
 
-                // buffer size in bytes
-                int bufferSize = AudioRecord.getMinBufferSize(SAMPLE_RATE,
-                        AudioFormat.CHANNEL_IN_MONO,
-                        AudioFormat.ENCODING_PCM_16BIT);
-
-                if (bufferSize == AudioRecord.ERROR || bufferSize == AudioRecord.ERROR_BAD_VALUE) {
-                    bufferSize = SAMPLE_RATE * 2;
                 }
 
-                short[] audioBuffer = new short[bufferSize / 2];
+                @Override
+                public void onNegativeClick() {
 
-                AudioRecord record = new AudioRecord(MediaRecorder.AudioSource.DEFAULT,
-                        SAMPLE_RATE,
-                        AudioFormat.CHANNEL_IN_MONO,
-                        AudioFormat.ENCODING_PCM_16BIT,
-                        bufferSize);
-
-                if (record.getState() != AudioRecord.STATE_INITIALIZED) {
-                    Log.e(LOG_TAG, "Audio Record can't initialize!");
-                    return;
                 }
-                record.startRecording();
+            });
+            return;
+        } else {
+            getCamera();
+        }
+    }
 
-                Log.v(LOG_TAG, "Start recording");
+    // getting camera parameters
+    private void getCamera() {
+        mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        try {
+            mCameraId = mCameraManager.getCameraIdList()[0];
+        } catch (CameraAccessException e) {
+            Logger.error(Logger.Type.MAIN, e);
+        }
+    }
 
-                long shortsRead = 0;
-                while (mShouldContinue) {
-                    int numberOfShort = record.read(audioBuffer, 0, audioBuffer.length);
-                    shortsRead += numberOfShort;
-
-                    // Do something with the audioBuffer
-                }
-
-                record.stop();
-                record.release();
-
-                Log.v(LOG_TAG, String.format("Recording stopped. Samples read: %d", shortsRead));
+    public void turnOnFlashLight() {
+        if (isTorchOn)
+            return;
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                mCameraManager.setTorchMode(mCameraId, true);
+                isTorchOn = true;
             }
-        }).start();
+        } catch (Exception e) {
+            Logger.error(Logger.Type.MAIN, e);
+        }
+    }
+
+    public void turnOffFlashLight() {
+        if (!isTorchOn)
+            return;
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                mCameraManager.setTorchMode(mCameraId, false);
+                isTorchOn = false;
+            }
+
+        } catch (Exception e) {
+            Logger.error(Logger.Type.MAIN, e);
+        }
     }
 
 }

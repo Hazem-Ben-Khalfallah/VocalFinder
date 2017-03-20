@@ -76,4 +76,7 @@
 
     <string name="request_permission_title">Permission needed</string>
     <string name="request_permission_message">Permission to record audio is needed for this app</string>
+
+    <string name="flash_not_supported_title">Feature not supported</string>
+    <string name="flash_not_supported_message">Flash light is not supported in this device</string>
 </resources>

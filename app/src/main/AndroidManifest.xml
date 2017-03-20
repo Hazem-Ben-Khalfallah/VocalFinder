@@ -2,7 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.blacknebula.vocalfinder">
 
+    <!-- Allows access to the Audio recorder -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Allows access to the flashlight -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.flash" />
 
     <application
         android:name=".VocalFinderApplication"
