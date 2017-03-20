@@ -1,4 +1,4 @@
-package com.blacknebula.vocalfinder;
+package com.blacknebula.vocalfinder.activity;
 
 import android.content.res.Configuration;
 import android.os.Bundle;

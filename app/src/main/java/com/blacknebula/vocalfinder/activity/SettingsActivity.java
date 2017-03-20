@@ -1,4 +1,4 @@
-package com.blacknebula.vocalfinder;
+package com.blacknebula.vocalfinder.activity;
 
 
 import android.annotation.TargetApi;
@@ -19,6 +19,8 @@ import android.preference.RingtonePreference;
 import android.support.v7.app.ActionBar;
 import android.text.TextUtils;
 import android.view.MenuItem;
+
+import com.blacknebula.vocalfinder.R;
 
 import java.util.List;
 

@@ -29,4 +29,8 @@ dependencies {
     compile 'com.android.support:support-v4:25.1.0'
     compile 'com.android.support:support-vector-drawable:25.1.0'
     testCompile 'junit:junit:4.12'
+    //butter knife annotations
+    compile 'com.jakewharton:butterknife:6.+'
+    //guava
+    compile 'com.google.guava:guava:20.0'
 }
