@@ -2,6 +2,7 @@ package com.blacknebula.vocalfinder.activity;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
@@ -12,10 +13,14 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.blacknebula.vocalfinder.R;
 import com.blacknebula.vocalfinder.util.Logger;
+import com.blacknebula.vocalfinder.util.PreferenceUtils;
 import com.blacknebula.vocalfinder.util.ViewUtils;
 
 import be.tarsos.dsp.AudioDispatcher;
@@ -52,9 +57,31 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        requestRecordAudioPermission();
-        detectFlashSupport();
-        getVibrator();
+        final boolean enableVocalFinder = PreferenceUtils.asBoolean("enableVocalFinder", false);
+        if (enableVocalFinder) {
+            requestRecordAudioPermission();
+            detectFlashSupport();
+            getVibrator();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.settings:
+                Intent myIntent = new Intent(this, SettingsActivity.class);
+                this.startActivity(myIntent);
+                break;
+
+        }
+        return true;
     }
 
     private void requestRecordAudioPermission() {
@@ -126,20 +153,28 @@ public class MainActivity extends AppCompatActivity {
         PitchDetectionHandler pdh = new PitchDetectionHandler() {
             @Override
             public void handlePitch(PitchDetectionResult result, AudioEvent e) {
+                final boolean enableVocalFinder = PreferenceUtils.asBoolean("enableVocalFinder", false);
+                if (!enableVocalFinder) {
+                    return;
+                }
+
                 final float pitchInHz = result.getPitch();
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         textView.setText("" + pitchInHz);
-                        if (pitchInHz > 1400) {
-                            turnOnFlashLight();
-                            startVibration();
-                        } else {
-                            turnOffFlashLight();
-                            stopVibration();
-                        }
                     }
                 });
+
+                final int minimalPitch = PreferenceUtils.asInt("audioSensitivity", 1400);
+                if (pitchInHz > minimalPitch) {
+                    turnOnFlashLight();
+                    startVibration();
+                } else {
+                    turnOffFlashLight();
+                    stopVibration();
+                }
             }
         };
         AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, pdh);
@@ -181,7 +216,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void turnOnFlashLight() {
-        if (isTorchOn)
+        final boolean enableFlashLight = PreferenceUtils.asBoolean("enableFlashLight", false);
+        if (isTorchOn || !enableFlashLight)
             return;
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -216,7 +252,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void startVibration() {
-        vibrator.vibrate(vibrationPattern, 0);
+        final boolean enableVibration = PreferenceUtils.asBoolean("enableVibration", false);
+        if (enableVibration) {
+            vibrator.vibrate(vibrationPattern, 0);
+        }
     }
 
     void stopVibration() {

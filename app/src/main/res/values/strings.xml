@@ -6,6 +6,7 @@
     <!-- Example General settings -->
     <string name="pref_header_general">General</string>
     <string name="pref_header_notifications">Notifications</string>
+    <string name="pref_advanced_settings">Advanced</string>
 
     <string name="pref_enable_vocal_finder_title">Enable vocal finder</string>
     <string name="pref_enable_vocal_finder_summary"> When enabled, your phone will respond to your whistle</string>
@@ -26,4 +27,21 @@
 
     <string name="flash_not_supported_title">Feature not supported</string>
     <string name="flash_not_supported_message">Flash light is not supported in this device</string>
+
+    <string name="pref_audio_sensitivity_title">Audio sensitivity</string>
+    <string name="pref_audio_sensitivity_summary">Define your apps sensitivity level.</string>
+    <string name="pref_audio_sensitivity_default">1400</string>
+    <string name="pref_settings">Settings</string>
+
+    <string-array name="list_sensitivity_preference_entries">
+        <item>normal human voice</item>
+        <item>Whistle</item>
+        <item>Sharp Whistle</item>
+    </string-array>
+
+    <string-array name="list_sensitivity_preference_values">
+        <item>100</item>
+        <item>1400</item>
+        <item>3000</item>
+    </string-array>
 </resources>

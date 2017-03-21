@@ -1,31 +1,53 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <PreferenceCategory
+        android:title="General Settings"
+        android:key="general_settings">
     <SwitchPreference
         android:defaultValue="true"
         android:key="enableVocalFinder"
-        android:title="@string/pref_enable_vocal_finder_title"
-        android:summary="@string/pref_enable_vocal_finder_summary" />
+        android:summary="@string/pref_enable_vocal_finder_summary"
+        android:title="@string/pref_enable_vocal_finder_title" />
+    </PreferenceCategory>
 
-    <SwitchPreference
-        android:defaultValue="true"
-        android:dependency="enableVocalFinder"
-        android:key="enableVibration"
-        android:summary="@string/pref_enable_vibration_summary"
-        android:title="@string/pref_enable_vibration_title" />
+    <PreferenceCategory
+        android:title="@string/pref_header_notifications"
+        android:key="notification_settings">
+        <SwitchPreference
+            android:defaultValue="true"
+            android:dependency="enableVocalFinder"
+            android:key="enableVibration"
+            android:summary="@string/pref_enable_vibration_summary"
+            android:title="@string/pref_enable_vibration_title" />
 
-    <SwitchPreference
-        android:defaultValue="true"
-        android:dependency="enableVocalFinder"
-        android:key="enableFlashLight"
-        android:summary="@string/pref_enable_flash_summary"
-        android:title="@string/pref_enable_flash_title" />
+        <SwitchPreference
+            android:defaultValue="true"
+            android:dependency="enableVocalFinder"
+            android:key="enableFlashLight"
+            android:summary="@string/pref_enable_flash_summary"
+            android:title="@string/pref_enable_flash_title" />
 
-    <RingtonePreference
-        android:defaultValue="content://settings/system/notification_sound"
-        android:dependency="enableVocalFinder"
-        android:key="enableRingtone"
-        android:ringtoneType="notification"
-        android:title="@string/pref_title_ringtone" />
+        <RingtonePreference
+            android:defaultValue="content://settings/system/notification_sound"
+            android:dependency="enableVocalFinder"
+            android:key="enableRingtone"
+            android:ringtoneType="notification"
+            android:title="@string/pref_title_ringtone" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_advanced_settings"
+        android:key="advanced_settings">
+        <ListPreference
+            android:defaultValue="@string/pref_audio_sensitivity_default"
+            android:entries="@array/list_sensitivity_preference_entries"
+            android:entryValues="@array/list_sensitivity_preference_values"
+            android:key="audioSensitivity"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:title="@string/pref_audio_sensitivity_title"
+            android:summary="@string/pref_audio_sensitivity_summary" />
+    </PreferenceCategory>
 
 
 </PreferenceScreen>
