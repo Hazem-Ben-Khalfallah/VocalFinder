@@ -9,7 +9,7 @@ public class Logger {
     final static private String NAME = "vocalFinder";
 
     public enum Type {
-        MAIN;
+        VOCAL_FINDER;
 
         @Override
         public String toString() {

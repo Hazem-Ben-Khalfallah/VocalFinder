@@ -1,18 +1,11 @@
 package com.blacknebula.vocalfinder.activity;
 
 import android.Manifest;
-import android.content.Context;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraManager;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Vibrator;
-import android.support.annotation.RequiresApi;
+import android.os.Parcelable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -22,23 +15,17 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.blacknebula.vocalfinder.R;
+import com.blacknebula.vocalfinder.service.VocalFinderIntentService;
 import com.blacknebula.vocalfinder.util.Logger;
 import com.blacknebula.vocalfinder.util.PreferenceUtils;
 import com.blacknebula.vocalfinder.util.ViewUtils;
-import com.google.common.base.Strings;
 import com.txusballesteros.SnakeView;
 
-import be.tarsos.dsp.AudioDispatcher;
-import be.tarsos.dsp.AudioEvent;
-import be.tarsos.dsp.AudioProcessor;
-import be.tarsos.dsp.io.android.AudioDispatcherFactory;
-import be.tarsos.dsp.pitch.PitchDetectionHandler;
-import be.tarsos.dsp.pitch.PitchDetectionResult;
-import be.tarsos.dsp.pitch.PitchProcessor;
+import org.parceler.Parcels;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class MainActivity extends AppCompatActivity {
 
     @InjectView(R.id.textView)
@@ -46,16 +33,8 @@ public class MainActivity extends AppCompatActivity {
     @InjectView(R.id.snake)
     SnakeView snakeView;
 
-    /**
-     * Start without a delay, Vibrate for 100 milliseconds, Sleep for 1000 milliseconds
-     */
-    long[] vibrationPattern = {0, 100, 1000};
     float maxPitch = 200;
-    private CameraManager mCameraManager;
-    private String mCameraId;
-    private boolean isTorchOn;
-    private Vibrator vibrator;
-    private Ringtone ringtone;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,9 +48,8 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         final boolean enableVocalFinder = PreferenceUtils.asBoolean("enableVocalFinder", false);
         if (enableVocalFinder) {
-            requestRecordAudioPermission();
             detectFlashSupport();
-            getVibrator();
+            requestRecordAudioPermission();
         }
     }
 
@@ -92,6 +70,44 @@ public class MainActivity extends AppCompatActivity {
 
         }
         return true;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == VocalFinderIntentService.DETECT_SOUND_REQUEST_CODE) {
+            updateUi(data);
+        }
+
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case 1: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                    Logger.info(Logger.Type.VOCAL_FINDER, "Permission Granted!");
+                    launchAudioDetection();
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    Logger.warn(Logger.Type.VOCAL_FINDER, "Permission Denied!");
+                    finish();
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
     }
 
     private void requestRecordAudioPermission() {
@@ -125,176 +141,63 @@ public class MainActivity extends AppCompatActivity {
                 }
             } else {
                 // Permission already granted
-                detectSound();
+                launchAudioDetection();
             }
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case 1: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                    Logger.info(Logger.Type.MAIN, "Permission Granted!");
-                    detectSound();
-
-                } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                    Logger.warn(Logger.Type.MAIN, "Permission Denied!");
-                    finish();
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
-    }
-
-    void detectSound() {
-        AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050, 1024, 0);
-
-        PitchDetectionHandler pdh = new PitchDetectionHandler() {
-            @Override
-            public void handlePitch(PitchDetectionResult result, AudioEvent e) {
-                final boolean enableVocalFinder = PreferenceUtils.asBoolean("enableVocalFinder", false);
-                if (!enableVocalFinder) {
-                    return;
-                }
-
-                final float pitchInHz = result.getPitch();
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        final long roundedPitch = Math.round(pitchInHz);
-                        final String value = pitchInHz <= 0 ? "0" : "" + roundedPitch;
-                        textView.setText(value);
-
-                        if (pitchInHz > maxPitch) {
-                            snakeView.setMaxValue(pitchInHz);
-                            maxPitch = pitchInHz;
-                        }
-                        snakeView.addValue(pitchInHz);
-                    }
-                });
-
-                final int minimalPitch = PreferenceUtils.asInt("audioSensitivity", 1400);
-                if (pitchInHz > minimalPitch) {
-                    turnOnFlashLight();
-                    startVibration();
-                    playRingtone();
-                } else {
-                    turnOffFlashLight();
-                    stopVibration();
-                    stopRingtone();
-                }
-            }
-        };
-        AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, pdh);
-        dispatcher.addAudioProcessor(p);
-        new Thread(dispatcher, "Audio Dispatcher").start();
+    private void launchAudioDetection() {
+        final PendingIntent pendingResult = createPendingResult(VocalFinderIntentService.DETECT_SOUND_REQUEST_CODE, new Intent(), 0);
+        final Intent intent = new Intent(this, VocalFinderIntentService.class);
+        intent.setAction(VocalFinderIntentService.DETECT_SOUND_ACTION);
+        intent.putExtra(VocalFinderIntentService.PENDING_RESULT_EXTRA, pendingResult);
+        startService(intent);
     }
 
     void detectFlashSupport() {
         boolean hasFlash = getApplicationContext().getPackageManager()
                 .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 
-        if (!hasFlash) {
-            // device doesn't support flash
-            ViewUtils.openDialog(this, R.string.flash_not_supported_title, R.string.flash_not_supported_message, new ViewUtils.onClickListener() {
-                @Override
-                public void onPositiveClick() {
-
-                }
-
-                @Override
-                public void onNegativeClick() {
-
-                }
-            });
+        if (hasFlash) {
             return;
-        } else {
-            getCamera();
         }
-    }
 
-    // getting camera parameters
-    private void getCamera() {
-        mCameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        try {
-            mCameraId = mCameraManager.getCameraIdList()[0];
-        } catch (CameraAccessException e) {
-            Logger.error(Logger.Type.MAIN, e);
-        }
-    }
+        // device doesn't support flash
+        ViewUtils.openDialog(this, R.string.flash_not_supported_title, R.string.flash_not_supported_message, new ViewUtils.onClickListener() {
+            @Override
+            public void onPositiveClick() {
 
-    public void turnOnFlashLight() {
-        final boolean enableFlashLight = PreferenceUtils.asBoolean("enableFlashLight", false);
-        if (isTorchOn || !enableFlashLight)
-            return;
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                mCameraManager.setTorchMode(mCameraId, true);
-                isTorchOn = true;
-            }
-        } catch (Exception e) {
-            Logger.error(Logger.Type.MAIN, e);
-        }
-    }
-
-    public void turnOffFlashLight() {
-        if (!isTorchOn)
-            return;
-
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                mCameraManager.setTorchMode(mCameraId, false);
-                isTorchOn = false;
             }
 
-        } catch (Exception e) {
-            Logger.error(Logger.Type.MAIN, e);
-        }
+            @Override
+            public void onNegativeClick() {
+
+            }
+        });
+
+        // disable flash light
+        PreferenceUtils.getPreferences().edit().putBoolean("enableFlashLight", false).apply();
     }
 
-    void getVibrator() {
-        // Get instance of Vibrator from current Context
-        if (vibrator == null) {
-            vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        }
+    public void updateUi(Intent data) {
+        final Parcelable result = data.getParcelableExtra(VocalFinderIntentService.REPLY_EXTRA);
+        final float pitchInHz = Parcels.unwrap(result);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                final long roundedPitch = Math.round(pitchInHz);
+                final String value = pitchInHz <= 0 ? "0" : "" + roundedPitch;
+                textView.setText(value);
+
+                if (pitchInHz > maxPitch) {
+                    snakeView.setMaxValue(pitchInHz);
+                    maxPitch = pitchInHz;
+                }
+                snakeView.addValue(pitchInHz);
+            }
+        });
+
     }
 
-    void startVibration() {
-        final boolean enableVibration = PreferenceUtils.asBoolean("enableVibration", false);
-        if (enableVibration) {
-            vibrator.vibrate(vibrationPattern, 0);
-        }
-    }
 
-    void stopVibration() {
-        vibrator.cancel();
-    }
-
-
-    void playRingtone() {
-        final String selectedRingtone = PreferenceUtils.asString("ringtone", "");
-        if (!Strings.isNullOrEmpty(selectedRingtone) && (ringtone == null || !ringtone.isPlaying())) {
-            final Uri path = Uri.parse(selectedRingtone);
-            ringtone = RingtoneManager.getRingtone(getApplicationContext(), path);
-            ringtone.play();
-        }
-    }
-
-    void stopRingtone() {
-        if (ringtone != null && ringtone.isPlaying()) {
-            ringtone.stop();
-        }
-    }
 }

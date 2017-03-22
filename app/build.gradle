@@ -33,5 +33,9 @@ dependencies {
     compile 'com.jakewharton:butterknife:6.+'
     //guava
     compile 'com.google.guava:guava:20.0'
+    // snake graph
     compile 'com.txusballesteros:snake:1.0'
+    //parceler
+    compile 'org.parceler:parceler-api:1.1.6'
+    annotationProcessor "org.parceler:parceler:1.1.6"
 }

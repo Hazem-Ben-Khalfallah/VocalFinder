@@ -34,6 +34,10 @@
             android:label="@string/app_name">
         </activity>
 
+        <service
+            android:name=".service.VocalFinderIntentService"
+            android:exported="false" />
+
     </application>
 
 </manifest>
