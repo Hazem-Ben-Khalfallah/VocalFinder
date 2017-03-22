@@ -124,6 +124,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         super.onCreate(savedInstanceState);
         setupActionBar();
         addPreferencesFromResource(R.xml.pref_notification);
+
+        bindPreferenceSummaryToValue(findPreference("ringtone"));
+        bindPreferenceSummaryToValue(findPreference("audioSensitivity"));
     }
 
     /**
@@ -151,7 +154,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     @Override
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public void onBuildHeaders(List<Header> target) {
-        if(false) {
+        if (false) {
             loadHeadersFromResource(R.xml.pref_headers, target);
         }
     }
@@ -171,14 +174,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static class NotificationPreferenceFragment extends PreferenceFragment {
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            addPreferencesFromResource(R.xml.pref_notification);
-            setHasOptionsMenu(true);
-
-            bindPreferenceSummaryToValue(findPreference("enableRingtone"));
-        }
 
         @Override
         public boolean onOptionsItemSelected(MenuItem item) {
