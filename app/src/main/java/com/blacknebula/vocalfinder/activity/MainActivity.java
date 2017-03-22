@@ -22,6 +22,7 @@ import com.blacknebula.vocalfinder.R;
 import com.blacknebula.vocalfinder.util.Logger;
 import com.blacknebula.vocalfinder.util.PreferenceUtils;
 import com.blacknebula.vocalfinder.util.ViewUtils;
+import com.txusballesteros.SnakeView;
 
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
@@ -38,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
 
     @InjectView(R.id.textView)
     TextView textView;
+    @InjectView(R.id.snake)
+    SnakeView snakeView;
+
     /**
      * Start without a delay, Vibrate for 100 milliseconds, Sleep for 1000 milliseconds
      */
@@ -164,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         textView.setText("" + pitchInHz);
+                        snakeView.addValue(pitchInHz);
                     }
                 });
 

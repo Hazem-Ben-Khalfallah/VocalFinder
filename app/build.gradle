@@ -33,4 +33,5 @@ dependencies {
     compile 'com.jakewharton:butterknife:6.+'
     //guava
     compile 'com.google.guava:guava:20.0'
+    compile 'com.txusballesteros:snake:1.0'
 }
