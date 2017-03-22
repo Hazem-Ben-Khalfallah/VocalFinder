@@ -58,6 +58,6 @@
         android:layout_width="match_parent"
         android:layout_height="100dp"
         app:minValue="-1"
-        app:maxValue="6000"
+        app:maxValue="200"
         />
 </LinearLayout>

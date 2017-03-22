@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
      * Start without a delay, Vibrate for 100 milliseconds, Sleep for 1000 milliseconds
      */
     long[] vibrationPattern = {0, 100, 1000};
+    float maxPitch = 200;
     private CameraManager mCameraManager;
     private String mCameraId;
     private boolean isTorchOn;
@@ -167,7 +168,14 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        textView.setText("" + pitchInHz);
+                        final long roundedPitch = Math.round(pitchInHz);
+                        final String value = pitchInHz <= 0 ? "0" : "" + roundedPitch;
+                        textView.setText(value);
+
+                        if (pitchInHz > maxPitch) {
+                            snakeView.setMaxValue(pitchInHz);
+                            maxPitch = pitchInHz;
+                        }
                         snakeView.addValue(pitchInHz);
                     }
                 });
