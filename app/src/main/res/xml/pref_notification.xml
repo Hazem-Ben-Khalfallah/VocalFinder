@@ -30,7 +30,7 @@
         <RingtonePreference
             android:defaultValue="content://settings/system/notification_sound"
             android:dependency="enableVocalFinder"
-            android:key="enableRingtone"
+            android:key="ringtone"
             android:ringtoneType="notification"
             android:title="@string/pref_title_ringtone" />
     </PreferenceCategory>

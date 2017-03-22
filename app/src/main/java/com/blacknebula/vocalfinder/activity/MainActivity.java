@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
@@ -22,6 +25,7 @@ import com.blacknebula.vocalfinder.R;
 import com.blacknebula.vocalfinder.util.Logger;
 import com.blacknebula.vocalfinder.util.PreferenceUtils;
 import com.blacknebula.vocalfinder.util.ViewUtils;
+import com.google.common.base.Strings;
 import com.txusballesteros.SnakeView;
 
 import be.tarsos.dsp.AudioDispatcher;
@@ -51,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private String mCameraId;
     private boolean isTorchOn;
     private Vibrator vibrator;
+    private Ringtone ringtone;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -184,9 +189,11 @@ public class MainActivity extends AppCompatActivity {
                 if (pitchInHz > minimalPitch) {
                     turnOnFlashLight();
                     startVibration();
+                    playRingtone();
                 } else {
                     turnOffFlashLight();
                     stopVibration();
+                    stopRingtone();
                 }
             }
         };
@@ -273,5 +280,21 @@ public class MainActivity extends AppCompatActivity {
 
     void stopVibration() {
         vibrator.cancel();
+    }
+
+
+    void playRingtone() {
+        final String selectedRingtone = PreferenceUtils.asString("ringtone", "");
+        if (!Strings.isNullOrEmpty(selectedRingtone) && (ringtone == null || !ringtone.isPlaying())) {
+            final Uri path = Uri.parse(selectedRingtone);
+            ringtone = RingtoneManager.getRingtone(getApplicationContext(), path);
+            ringtone.play();
+        }
+    }
+
+    void stopRingtone() {
+        if (ringtone != null && ringtone.isPlaying()) {
+            ringtone.stop();
+        }
     }
 }
