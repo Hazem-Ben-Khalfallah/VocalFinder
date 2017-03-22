@@ -1,6 +1,7 @@
 package com.blacknebula.vocalfinder.service;
 
 import android.app.IntentService;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -28,7 +29,7 @@ import be.tarsos.dsp.pitch.PitchDetectionResult;
 import be.tarsos.dsp.pitch.PitchProcessor;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class VocalFinderIntentService extends IntentService {
+public class VocalFinderIntentService extends NonStopIntentService {
 
     //Actions
     public static final String DETECT_SOUND_ACTION = "detect_sound";
@@ -57,6 +58,8 @@ public class VocalFinderIntentService extends IntentService {
     @Override
     public void onCreate() {
         super.onCreate();
+        final Notification notification = new Notification();
+        startForeground(1, notification);
     }
 
     @Override

@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == VocalFinderIntentService.DETECT_SOUND_REQUEST_CODE) {
-            updateUi(data);
+            visualizeAudioData(data);
         }
 
         super.onActivityResult(requestCode, resultCode, data);
@@ -179,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
         PreferenceUtils.getPreferences().edit().putBoolean("enableFlashLight", false).apply();
     }
 
-    public void updateUi(Intent data) {
+    public void visualizeAudioData(Intent data) {
         final Parcelable result = data.getParcelableExtra(VocalFinderIntentService.REPLY_EXTRA);
         final float pitchInHz = Parcels.unwrap(result);
         runOnUiThread(new Runnable() {
