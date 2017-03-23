@@ -40,16 +40,14 @@ import static android.app.PendingIntent.FLAG_CANCEL_CURRENT;
 public class VocalFinderIntentService extends NonStopIntentService {
 
     //Actions
-    public static final String DETECT_SOUND_ACTION = "detect_sound";
+    public static final String START_ACTION = "detect_sound";
     public static final String STOP_ACTION = "stop";
-    // Extras
-    public static final String PENDING_RESULT_EXTRA = "pending_result";
-    public static final String REPLY_EXTRA = "reply";
-    // intent codes
-    public static final int DETECT_SOUND_REQUEST_CODE = 1;
+    public static final String SOUND_DETECTED_ACTION = "soundDetected";
 
-    private static final String TAG = VocalFinderIntentService.class.getSimpleName();
+    // Extras
+    public static final String SOUND_PITCH_EXTRA = "reply";
     private static final int NOTIFICATION_ID = 1;
+
     public static boolean isRunning;
     /**
      * Start without a delay, Vibrate for 100 milliseconds, Sleep for 1000 milliseconds
@@ -60,10 +58,9 @@ public class VocalFinderIntentService extends NonStopIntentService {
     private boolean isTorchOn;
     private Vibrator vibrator;
     private Ringtone ringtone;
-    private PendingIntent replyIntent;
 
     public VocalFinderIntentService() {
-        super(TAG);
+        super(VocalFinderIntentService.class.getSimpleName());
     }
 
     @Override
@@ -88,10 +85,10 @@ public class VocalFinderIntentService extends NonStopIntentService {
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
                 .setOngoing(true)
                 .setContentTitle("Vocal finder")
-                .setContentText("Never loose your phone again!")
+                .setContentText("Never lose your phone again!")
                 .setContentIntent(pReceiverIntent)
-                .addAction(android.R.drawable.ic_media_pause, "Pause", pStop)
-                .addAction(android.R.drawable.ic_menu_preferences, "Settings", pSettings)
+                .addAction(R.mipmap.ic_stop, "Stop", pStop)
+                .addAction(R.mipmap.ic_settings, "Settings", pSettings)
                 .build();
 
         startForeground(NOTIFICATION_ID, notification);
@@ -101,8 +98,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
     protected void onHandleIntent(Intent intent) {
         try {
             final String action = intent.getAction();
-            if (DETECT_SOUND_ACTION.equals(action)) {
-                replyIntent = intent.getParcelableExtra(PENDING_RESULT_EXTRA);
+            if (START_ACTION.equals(action)) {
                 detectSound();
             } else if (STOP_ACTION.equals(action)) {
                 stopForeground(true);
@@ -252,13 +248,10 @@ public class VocalFinderIntentService extends NonStopIntentService {
     }
 
     private <T> void sendReply(T replyMessage) {
-        final Intent result = new Intent();
-        result.putExtra(REPLY_EXTRA, Parcels.wrap(replyMessage));
-        try {
-            replyIntent.send(this, DETECT_SOUND_REQUEST_CODE, result);
-        } catch (PendingIntent.CanceledException e) {
-            Logger.error(Logger.Type.VOCAL_FINDER, e, "Could not send back reply %s", replyMessage);
-        }
+        final Intent intent = new Intent();
+        intent.setAction(SOUND_DETECTED_ACTION);
+        intent.putExtra(SOUND_PITCH_EXTRA, Parcels.wrap(replyMessage));
+        sendBroadcast(intent);
     }
 
 }

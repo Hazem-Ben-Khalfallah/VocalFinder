@@ -1,8 +1,10 @@
 package com.blacknebula.vocalfinder.activity;
 
 import android.Manifest;
-import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -32,13 +34,28 @@ public class MainActivity extends AppCompatActivity {
     TextView textView;
     @InjectView(R.id.snake)
     SnakeView snakeView;
+
     float maxPitch = 200;
+    private BroadcastReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.inject(this);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(VocalFinderIntentService.SOUND_DETECTED_ACTION);
+
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (VocalFinderIntentService.SOUND_DETECTED_ACTION.equals(intent.getAction())) {
+                    visualizeAudioData(intent);
+                }
+            }
+        };
+        registerReceiver(receiver, filter);
     }
 
     @Override
@@ -49,6 +66,15 @@ public class MainActivity extends AppCompatActivity {
             detectFlashSupport();
             requestRecordAudioPermission();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (receiver != null) {
+            unregisterReceiver(receiver);
+            receiver = null;
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -71,25 +97,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == VocalFinderIntentService.DETECT_SOUND_REQUEST_CODE) {
-            visualizeAudioData(data);
-        }
-
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case 1: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-if (VocalFinderIntentService.isRunning) {
-            return;
-        }
+                    if (VocalFinderIntentService.isRunning) {
+                        return;
+                    }
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
                     Logger.info(Logger.Type.VOCAL_FINDER, "Permission Granted!");
@@ -172,7 +187,7 @@ if (VocalFinderIntentService.isRunning) {
     }
 
     public void visualizeAudioData(Intent data) {
-        final Parcelable result = data.getParcelableExtra(VocalFinderIntentService.REPLY_EXTRA);
+        final Parcelable result = data.getParcelableExtra(VocalFinderIntentService.SOUND_PITCH_EXTRA);
         final float pitchInHz = Parcels.unwrap(result);
         runOnUiThread(new Runnable() {
             @Override
@@ -195,10 +210,8 @@ if (VocalFinderIntentService.isRunning) {
         if (VocalFinderIntentService.isRunning) {
             return;
         }
-        final PendingIntent pendingResult = createPendingResult(VocalFinderIntentService.DETECT_SOUND_REQUEST_CODE, new Intent(), PendingIntent.FLAG_CANCEL_CURRENT);
         final Intent intent = new Intent(this, VocalFinderIntentService.class);
-        intent.setAction(VocalFinderIntentService.DETECT_SOUND_ACTION);
-        intent.putExtra(VocalFinderIntentService.PENDING_RESULT_EXTRA, pendingResult);
+        intent.setAction(VocalFinderIntentService.START_ACTION);
         startService(intent);
     }
 
