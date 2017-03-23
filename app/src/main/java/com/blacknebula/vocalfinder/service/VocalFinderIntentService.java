@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
+import android.media.AudioManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -153,8 +154,9 @@ public class VocalFinderIntentService extends NonStopIntentService {
                     Logger.warn(Logger.Type.VOCAL_FINDER, "Vocal finder service has been stopped");
                     return;
                 }
+
                 final boolean enableVocalFinder = PreferenceUtils.asBoolean("enableVocalFinder", false);
-                if (!enableVocalFinder) {
+                if (!enableVocalFinder || isCallActive(VocalFinderApplication.getAppContext())) {
                     return;
                 }
 
@@ -177,6 +179,17 @@ public class VocalFinderIntentService extends NonStopIntentService {
         AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, pdh);
         dispatcher.addAudioProcessor(p);
         new Thread(dispatcher, "Audio Dispatcher").start();
+    }
+
+    /**
+     * Check if a telephony call is established.
+     *
+     * @param context context
+     * @return true if telephony call is established
+     */
+    public boolean isCallActive(Context context) {
+        final AudioManager manager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        return AudioManager.MODE_IN_CALL == manager.getMode();
     }
 
     public void turnOnFlashLight() {
