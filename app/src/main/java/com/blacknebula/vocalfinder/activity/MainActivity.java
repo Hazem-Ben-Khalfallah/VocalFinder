@@ -32,9 +32,7 @@ public class MainActivity extends AppCompatActivity {
     TextView textView;
     @InjectView(R.id.snake)
     SnakeView snakeView;
-
     float maxPitch = 200;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +87,9 @@ public class MainActivity extends AppCompatActivity {
             case 1: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
+if (VocalFinderIntentService.isRunning) {
+            return;
+        }
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
                     Logger.info(Logger.Type.VOCAL_FINDER, "Permission Granted!");
@@ -146,14 +146,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void launchAudioDetection() {
-        final PendingIntent pendingResult = createPendingResult(VocalFinderIntentService.DETECT_SOUND_REQUEST_CODE, new Intent(), 0);
-        final Intent intent = new Intent(this, VocalFinderIntentService.class);
-        intent.setAction(VocalFinderIntentService.DETECT_SOUND_ACTION);
-        intent.putExtra(VocalFinderIntentService.PENDING_RESULT_EXTRA, pendingResult);
-        startService(intent);
-    }
-
     void detectFlashSupport() {
         boolean hasFlash = getApplicationContext().getPackageManager()
                 .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
@@ -197,6 +189,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void launchAudioDetection() {
+        if (VocalFinderIntentService.isRunning) {
+            return;
+        }
+        final PendingIntent pendingResult = createPendingResult(VocalFinderIntentService.DETECT_SOUND_REQUEST_CODE, new Intent(), PendingIntent.FLAG_CANCEL_CURRENT);
+        final Intent intent = new Intent(this, VocalFinderIntentService.class);
+        intent.setAction(VocalFinderIntentService.DETECT_SOUND_ACTION);
+        intent.putExtra(VocalFinderIntentService.PENDING_RESULT_EXTRA, pendingResult);
+        startService(intent);
     }
 
 
