@@ -40,6 +40,7 @@
         android:key="advanced_settings">
         <ListPreference
             android:defaultValue="@string/pref_audio_sensitivity_default"
+            android:dependency="enableVocalFinder"
             android:entries="@array/list_sensitivity_preference_entries"
             android:entryValues="@array/list_sensitivity_preference_values"
             android:key="audioSensitivity"
@@ -47,6 +48,13 @@
             android:positiveButtonText="@null"
             android:title="@string/pref_audio_sensitivity_title"
             android:summary="@string/pref_audio_sensitivity_summary" />
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:dependency="enableVocalFinder"
+            android:key="enableSaveEnergyMode"
+            android:summary="@string/pref_enable_save_energy_mode_summary"
+            android:title="@string/pref_enable_save_energy_mode_title" />
     </PreferenceCategory>
 
 

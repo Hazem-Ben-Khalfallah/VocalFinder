@@ -9,13 +9,16 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
+import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.PowerManager;
 import android.os.Vibrator;
 import android.support.annotation.RequiresApi;
+import android.view.Display;
 
 import com.blacknebula.vocalfinder.R;
 import com.blacknebula.vocalfinder.VocalFinderApplication;
@@ -155,8 +158,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
                     return;
                 }
 
-                final boolean enableVocalFinder = PreferenceUtils.asBoolean("enableVocalFinder", false);
-                if (!enableVocalFinder || isCallActive(VocalFinderApplication.getAppContext())) {
+                if (skipSoundDetection()) {
                     return;
                 }
 
@@ -181,6 +183,14 @@ public class VocalFinderIntentService extends NonStopIntentService {
         new Thread(dispatcher, "Audio Dispatcher").start();
     }
 
+    private boolean skipSoundDetection() {
+        final boolean isEnabled = PreferenceUtils.asBoolean("enableVocalFinder", false);
+        final boolean isSaveEnergyMode = PreferenceUtils.asBoolean("enableSaveEnergyMode", false);
+        return !isEnabled ||
+                (isSaveEnergyMode && isScreenOn(VocalFinderApplication.getAppContext())) ||
+                isCallActive(VocalFinderApplication.getAppContext());
+    }
+
     /**
      * Check if a telephony call is established.
      *
@@ -190,6 +200,29 @@ public class VocalFinderIntentService extends NonStopIntentService {
     public boolean isCallActive(Context context) {
         final AudioManager manager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         return AudioManager.MODE_IN_CALL == manager.getMode();
+    }
+
+    /**
+     * Is the screen of the device on.
+     *
+     * @param context the context
+     * @return true when (at least one) screen is on
+     */
+    public boolean isScreenOn(Context context) {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+            DisplayManager dm = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+            boolean screenOn = false;
+            for (Display display : dm.getDisplays()) {
+                if (display.getState() != Display.STATE_OFF) {
+                    screenOn = true;
+                }
+            }
+            return screenOn;
+        } else {
+            PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+            //noinspection deprecation
+            return pm.isScreenOn();
+        }
     }
 
     public void turnOnFlashLight() {
