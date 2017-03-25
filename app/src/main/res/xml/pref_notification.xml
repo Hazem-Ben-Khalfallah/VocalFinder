@@ -4,8 +4,8 @@
         android:title="General Settings"
         android:key="general_settings">
     <SwitchPreference
-        android:defaultValue="true"
         android:key="enableVocalFinder"
+        android:defaultValue="true"
         android:summary="@string/pref_enable_vocal_finder_summary"
         android:title="@string/pref_enable_vocal_finder_title" />
     </PreferenceCategory>
@@ -14,24 +14,24 @@
         android:title="@string/pref_header_notifications"
         android:key="notification_settings">
         <SwitchPreference
+            android:key="enableVibration"
             android:defaultValue="true"
             android:dependency="enableVocalFinder"
-            android:key="enableVibration"
             android:summary="@string/pref_enable_vibration_summary"
             android:title="@string/pref_enable_vibration_title" />
 
         <SwitchPreference
+            android:key="enableFlashLight"
             android:defaultValue="true"
             android:dependency="enableVocalFinder"
-            android:key="enableFlashLight"
             android:summary="@string/pref_enable_flash_summary"
             android:title="@string/pref_enable_flash_title" />
 
         <RingtonePreference
+            android:key="ringtone"
             android:defaultValue="content://settings/system/notification_sound"
             android:dependency="enableVocalFinder"
-            android:key="ringtone"
-            android:ringtoneType="notification"
+            android:ringtoneType="ringtone"
             android:title="@string/pref_title_ringtone" />
     </PreferenceCategory>
 
@@ -39,20 +39,32 @@
         android:title="@string/pref_advanced_settings"
         android:key="advanced_settings">
         <ListPreference
+            android:key="audioSensitivity"
             android:defaultValue="@string/pref_audio_sensitivity_default"
             android:dependency="enableVocalFinder"
             android:entries="@array/list_sensitivity_preference_entries"
             android:entryValues="@array/list_sensitivity_preference_values"
-            android:key="audioSensitivity"
             android:negativeButtonText="@null"
             android:positiveButtonText="@null"
             android:title="@string/pref_audio_sensitivity_title"
             android:summary="@string/pref_audio_sensitivity_summary" />
 
+        <ListPreference
+            android:key="notificationEnd"
+            android:defaultValue="@string/pref_notification_end_mode_default"
+            android:dependency="enableVocalFinder"
+            android:entries="@array/list_notification_end_mode_preference_entries"
+            android:entryValues="@array/list_notification_end_mode_preference_values"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:title="@string/pref_notification_end_mode_title"
+            android:summary="@string/pref_notification_end_mode_summary" />
+
+
         <SwitchPreference
+            android:key="enableSaveEnergyMode"
             android:defaultValue="true"
             android:dependency="enableVocalFinder"
-            android:key="enableSaveEnergyMode"
             android:summary="@string/pref_enable_save_energy_mode_summary"
             android:title="@string/pref_enable_save_energy_mode_title" />
     </PreferenceCategory>

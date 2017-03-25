@@ -45,7 +45,8 @@ public class VocalFinderIntentService extends NonStopIntentService {
 
     //Actions
     public static final String START_ACTION = "detect_sound";
-    public static final String STOP_ACTION = "stop";
+    public static final String KILL_ACTION = "kill";
+    public static final String ALARM_STOP_ACTION = "stopAlarm";
     public static final String SOUND_DETECTED_ACTION = "soundDetected";
 
     // Extras
@@ -53,6 +54,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
     private static final int NOTIFICATION_ID = 1;
 
     public static boolean isRunning;
+    private static boolean isAlarmStarted;
     /**
      * Start without a delay, Vibrate for 100 milliseconds, Sleep for 1000 milliseconds
      */
@@ -70,20 +72,22 @@ public class VocalFinderIntentService extends NonStopIntentService {
     @Override
     public void onCreate() {
         super.onCreate();
-
         isRunning = true;
+        sendNotification(false);
+    }
 
+    private void sendNotification(boolean alarmStarted) {
+        if (VocalFinderIntentService.isAlarmStarted) {
+            return;
+        }
+        Logger.info(Logger.Type.VOCAL_FINDER, "------- Notification sent %s", alarmStarted);
         final Intent mainIntent = new Intent(VocalFinderApplication.getAppContext(), MainActivity.class);
         final PendingIntent pReceiverIntent = PendingIntent.getActivity(VocalFinderApplication.getAppContext(), 1, mainIntent, 0);
-
-        final Intent stopIntent = new Intent(VocalFinderApplication.getAppContext(), VocalFinderIntentService.class);
-        stopIntent.setAction(STOP_ACTION);
-        final PendingIntent pStop = PendingIntent.getService(VocalFinderApplication.getAppContext(), 1, stopIntent, FLAG_CANCEL_CURRENT);
 
         final Intent settingsIntent = new Intent(VocalFinderApplication.getAppContext(), SettingsActivity.class);
         final PendingIntent pSettings = PendingIntent.getActivity(VocalFinderApplication.getAppContext(), 1, settingsIntent, 0);
 
-        Notification notification = new Notification.Builder(VocalFinderApplication.getAppContext())
+        final Notification.Builder builder = new Notification.Builder(VocalFinderApplication.getAppContext())
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setColor(Color.BLACK)
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
@@ -91,9 +95,21 @@ public class VocalFinderIntentService extends NonStopIntentService {
                 .setContentTitle("Vocal finder")
                 .setContentText("Never lose your phone again!")
                 .setContentIntent(pReceiverIntent)
-                .addAction(R.mipmap.ic_stop, "Stop", pStop)
-                .addAction(R.mipmap.ic_settings, "Settings", pSettings)
-                .build();
+                .addAction(R.mipmap.ic_settings, "", pSettings);
+
+        if (alarmStarted) {
+            final Intent stopAlarmIntent = new Intent(VocalFinderApplication.getAppContext(), VocalFinderIntentService.class);
+            stopAlarmIntent.setAction(ALARM_STOP_ACTION);
+            final PendingIntent pStopAlarm = PendingIntent.getService(VocalFinderApplication.getAppContext(), 1, stopAlarmIntent, FLAG_CANCEL_CURRENT);
+            builder.addAction(R.mipmap.ic_stop, "", pStopAlarm);
+        } else {
+            final Intent killIntent = new Intent(VocalFinderApplication.getAppContext(), VocalFinderIntentService.class);
+            killIntent.setAction(KILL_ACTION);
+            final PendingIntent pKill = PendingIntent.getService(VocalFinderApplication.getAppContext(), 1, killIntent, FLAG_CANCEL_CURRENT);
+            builder.addAction(R.mipmap.ic_close, "", pKill);
+        }
+
+        final Notification notification = builder.build();
 
         startForeground(NOTIFICATION_ID, notification);
     }
@@ -102,13 +118,17 @@ public class VocalFinderIntentService extends NonStopIntentService {
     protected void onHandleIntent(Intent intent) {
         try {
             final String action = intent.getAction();
+            Logger.info(Logger.Type.VOCAL_FINDER, "*************** action: %s", action);
             if (START_ACTION.equals(action)) {
                 detectSound();
-            } else if (STOP_ACTION.equals(action)) {
+            } else if (KILL_ACTION.equals(action)) {
                 stopForeground(true);
                 stopSelf();
                 final NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                 notificationManager.cancel(NOTIFICATION_ID);
+            } else if (ALARM_STOP_ACTION.equals(action)) {
+                stopAlarm();
+                sendNotification(false);
             }
 
         } catch (Exception ex) {
@@ -158,23 +178,26 @@ public class VocalFinderIntentService extends NonStopIntentService {
                     return;
                 }
 
+                final float pitchInHz = result.getPitch();
+                broadcastPitch(pitchInHz);
+
                 if (skipSoundDetection()) {
                     return;
                 }
 
-                final float pitchInHz = result.getPitch();
-
-                sendReply(pitchInHz);
-
                 final int minimalPitch = PreferenceUtils.asInt("audioSensitivity", 1400);
+                final boolean stopAlarmOnSoundEnd = shouldStopAlarmOnSoundEnd();
                 if (pitchInHz > minimalPitch) {
-                    turnOnFlashLight();
-                    startVibration();
-                    playRingtone();
+                    // add stop alarm action in notification
+                    if (!stopAlarmOnSoundEnd) {
+                        sendNotification(true);
+                    }
+                    // start alarm
+                    startAlarm();
                 } else {
-                    turnOffFlashLight();
-                    stopVibration();
-                    stopRingtone();
+                    if (stopAlarmOnSoundEnd) {
+                        stopAlarm();
+                    }
                 }
             }
         };
@@ -183,6 +206,42 @@ public class VocalFinderIntentService extends NonStopIntentService {
         new Thread(dispatcher, "Audio Dispatcher").start();
     }
 
+    private boolean shouldStopAlarmOnSoundEnd() {
+        final String onSoundEndPrefValue = getResources().getString(R.string.sound_end_value);
+        final String notificationEnd = PreferenceUtils.asString("notificationEnd", onSoundEndPrefValue);
+        return onSoundEndPrefValue.equals(notificationEnd);
+    }
+
+    private void startAlarm() {
+        if (VocalFinderIntentService.isAlarmStarted) {
+            return;
+        }
+
+        // change alarm status to true
+        VocalFinderIntentService.isAlarmStarted = true;
+
+        // start all kinds of alarms
+        playRingtone();
+        turnOnFlashLight();
+        startVibration();
+    }
+
+    private void stopAlarm() {
+        // stop all kinds of alarms
+        stopVibration();
+        turnOffFlashLight();
+        stopRingtone();
+        // change alarm status to false
+        VocalFinderIntentService.isAlarmStarted = false;
+    }
+
+    /**
+     * return true if at least one of these cases are true:
+     * - app has been disabled
+     * - save energy mode is enabled
+     * - a call is active
+     * @return boolean
+     */
     private boolean skipSoundDetection() {
         final boolean isEnabled = PreferenceUtils.asBoolean("enableVocalFinder", false);
         final boolean isSaveEnergyMode = PreferenceUtils.asBoolean("enableSaveEnergyMode", false);
@@ -293,7 +352,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
         }
     }
 
-    private <T> void sendReply(T replyMessage) {
+    private <T> void broadcastPitch(T replyMessage) {
         final Intent intent = new Intent();
         intent.setAction(SOUND_DETECTED_ACTION);
         intent.putExtra(SOUND_PITCH_EXTRA, Parcels.wrap(replyMessage));
