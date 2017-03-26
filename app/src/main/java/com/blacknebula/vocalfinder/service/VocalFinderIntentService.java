@@ -55,6 +55,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
 
     public static boolean isRunning;
     private static boolean isAlarmStarted;
+    private static NotificationTypeEnum currentNotificationType;
     /**
      * Start without a delay, Vibrate for 100 milliseconds, Sleep for 1000 milliseconds
      */
@@ -73,14 +74,17 @@ public class VocalFinderIntentService extends NonStopIntentService {
     public void onCreate() {
         super.onCreate();
         isRunning = true;
-        sendNotification(false);
+        sendNotification(NotificationTypeEnum.NORMAL);
     }
 
-    private void sendNotification(boolean alarmStarted) {
-        if (VocalFinderIntentService.isAlarmStarted) {
+    private void sendNotification(NotificationTypeEnum notificationType) {
+        if (isAlarmStarted || notificationType.equals(currentNotificationType)) {
             return;
         }
-        Logger.info(Logger.Type.VOCAL_FINDER, "------- Notification sent %s", alarmStarted);
+
+        currentNotificationType = notificationType;
+
+        Logger.info(Logger.Type.VOCAL_FINDER, "------- Notification sent %s", notificationType);
         final Intent mainIntent = new Intent(VocalFinderApplication.getAppContext(), MainActivity.class);
         final PendingIntent pReceiverIntent = PendingIntent.getActivity(VocalFinderApplication.getAppContext(), 1, mainIntent, 0);
 
@@ -88,8 +92,8 @@ public class VocalFinderIntentService extends NonStopIntentService {
         final PendingIntent pSettings = PendingIntent.getActivity(VocalFinderApplication.getAppContext(), 1, settingsIntent, 0);
 
         final Notification.Builder builder = new Notification.Builder(VocalFinderApplication.getAppContext())
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setColor(Color.BLACK)
+                .setSmallIcon(getNotificationSmallIcon(notificationType))
+                .setColor(Color.WHITE)
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher))
                 .setOngoing(true)
                 .setContentTitle("Vocal finder")
@@ -97,7 +101,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
                 .setContentIntent(pReceiverIntent)
                 .addAction(R.mipmap.ic_settings, "", pSettings);
 
-        if (alarmStarted) {
+        if (NotificationTypeEnum.ALARM.equals(notificationType)) {
             final Intent stopAlarmIntent = new Intent(VocalFinderApplication.getAppContext(), VocalFinderIntentService.class);
             stopAlarmIntent.setAction(ALARM_STOP_ACTION);
             final PendingIntent pStopAlarm = PendingIntent.getService(VocalFinderApplication.getAppContext(), 1, stopAlarmIntent, FLAG_CANCEL_CURRENT);
@@ -114,6 +118,18 @@ public class VocalFinderIntentService extends NonStopIntentService {
         startForeground(NOTIFICATION_ID, notification);
     }
 
+    private int getNotificationSmallIcon(NotificationTypeEnum notificationType) {
+        if (NotificationTypeEnum.APP_DISABLE.equals(notificationType)) {
+            return R.mipmap.ic_hold;
+        } else if (NotificationTypeEnum.ENERGY_SAVE.equals(notificationType)) {
+            return R.mipmap.ic_energy;
+        } else if (NotificationTypeEnum.ALARM.equals(notificationType)) {
+            return R.mipmap.ic_alarm;
+        }
+
+        return R.mipmap.ic_launcher;
+    }
+
     @Override
     protected void onHandleIntent(Intent intent) {
         try {
@@ -128,7 +144,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
                 notificationManager.cancel(NOTIFICATION_ID);
             } else if (ALARM_STOP_ACTION.equals(action)) {
                 stopAlarm();
-                sendNotification(false);
+                sendNotification(getNotificationType());
             }
 
         } catch (Exception ex) {
@@ -182,6 +198,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
                 broadcastPitch(pitchInHz);
 
                 if (skipSoundDetection()) {
+                    sendNotification(getNotificationType());
                     return;
                 }
 
@@ -190,7 +207,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
                 if (pitchInHz > minimalPitch) {
                     // add stop alarm action in notification
                     if (!stopAlarmOnSoundEnd) {
-                        sendNotification(true);
+                        sendNotification(NotificationTypeEnum.ALARM);
                     }
                     // start alarm
                     startAlarm();
@@ -213,12 +230,12 @@ public class VocalFinderIntentService extends NonStopIntentService {
     }
 
     private void startAlarm() {
-        if (VocalFinderIntentService.isAlarmStarted) {
+        if (isAlarmStarted) {
             return;
         }
 
         // change alarm status to true
-        VocalFinderIntentService.isAlarmStarted = true;
+        isAlarmStarted = true;
 
         // start all kinds of alarms
         playRingtone();
@@ -232,7 +249,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
         turnOffFlashLight();
         stopRingtone();
         // change alarm status to false
-        VocalFinderIntentService.isAlarmStarted = false;
+        isAlarmStarted = false;
     }
 
     /**
@@ -240,6 +257,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
      * - app has been disabled
      * - save energy mode is enabled
      * - a call is active
+     *
      * @return boolean
      */
     private boolean skipSoundDetection() {
@@ -248,6 +266,19 @@ public class VocalFinderIntentService extends NonStopIntentService {
         return !isEnabled ||
                 (isSaveEnergyMode && isScreenOn(VocalFinderApplication.getAppContext())) ||
                 isCallActive(VocalFinderApplication.getAppContext());
+    }
+
+    private NotificationTypeEnum getNotificationType() {
+        final boolean isEnabled = PreferenceUtils.asBoolean("enableVocalFinder", false);
+        if (!isEnabled) {
+            return NotificationTypeEnum.APP_DISABLE;
+        }
+
+        final boolean isSaveEnergyMode = PreferenceUtils.asBoolean("enableSaveEnergyMode", false);
+        if (isSaveEnergyMode) {
+            return NotificationTypeEnum.ENERGY_SAVE;
+        }
+        return NotificationTypeEnum.NORMAL;
     }
 
     /**
