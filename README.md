@@ -13,9 +13,11 @@ Start the application. Choose the way in which your lost phone will inform you a
 - flash light: Your phone will start the flash lamp of the camera, which will make finding the phone easier and faster.
 - vibration: The telephone will start vibrating at the moment of whistle detection.
 - save battery: you can set listening out for the whistle only while the screen of the phone is off.
-- Detection of incoming connection: This option will unblock the microphone used to detect a whistle when the phone receives a call.
-After the phone call, the phone will continue listening out for the whistle.
+- Detection of incoming connection: This option will put the application on hold when the phone receives a call.
+At the phone call end, the application will resume listening out for the voice signals.
 - configure the microphone sensitivity. The effectiveness of whistle detection depends on built-in microphone and number of noises and sounds of surrounding.
+- configure how the alert should stop. Should it stop at the voice signal end or should it continue until being stopped manually.
+- configure signal minimum duration before triggering the alert.
 
 ## Snapshots
 <p>
