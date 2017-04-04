@@ -48,6 +48,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
     public static final String KILL_ACTION = "kill";
     public static final String ALARM_STOP_ACTION = "stopAlarm";
     public static final String SOUND_DETECTED_ACTION = "soundDetected";
+    public static final String PREFERENCES_UPDATE_ACTION = "preferencesUpdate";
 
     // Extras
     public static final String SOUND_PITCH_EXTRA = "reply";
@@ -74,7 +75,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
     public void onCreate() {
         super.onCreate();
         isRunning = true;
-        sendNotification(NotificationTypeEnum.NORMAL);
+        sendNotification(getNotificationType());
     }
 
     private void sendNotification(NotificationTypeEnum notificationType) {
@@ -84,7 +85,6 @@ public class VocalFinderIntentService extends NonStopIntentService {
 
         currentNotificationType = notificationType;
 
-        Logger.info(Logger.Type.VOCAL_FINDER, "------- Notification sent %s", notificationType);
         final Intent mainIntent = new Intent(VocalFinderApplication.getAppContext(), MainActivity.class);
         final PendingIntent pReceiverIntent = PendingIntent.getActivity(VocalFinderApplication.getAppContext(), 1, mainIntent, 0);
 
@@ -131,10 +131,9 @@ public class VocalFinderIntentService extends NonStopIntentService {
     }
 
     @Override
-    protected void onHandleIntent(Intent intent) {
+    public int onStartCommand(Intent intent, int flags, int startId) {
         try {
             final String action = intent.getAction();
-            Logger.info(Logger.Type.VOCAL_FINDER, "*************** action: %s", action);
             if (START_ACTION.equals(action)) {
                 detectSound();
             } else if (KILL_ACTION.equals(action)) {
@@ -145,11 +144,19 @@ public class VocalFinderIntentService extends NonStopIntentService {
             } else if (ALARM_STOP_ACTION.equals(action)) {
                 stopAlarm();
                 sendNotification(getNotificationType());
+            } else if (PREFERENCES_UPDATE_ACTION.equals(intent.getAction())) {
+                sendNotification(getNotificationType());
             }
 
         } catch (Exception ex) {
             Logger.error(Logger.Type.VOCAL_FINDER, ex, "Error handling action");
         }
+
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    protected void onHandleIntent(Intent intent) {
     }
 
     @Override

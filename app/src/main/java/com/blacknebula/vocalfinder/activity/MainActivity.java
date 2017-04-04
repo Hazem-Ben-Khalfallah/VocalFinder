@@ -28,6 +28,12 @@ import org.parceler.Parcels;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 
+import static com.blacknebula.vocalfinder.service.VocalFinderIntentService.SOUND_DETECTED_ACTION;
+import static com.blacknebula.vocalfinder.service.VocalFinderIntentService.SOUND_PITCH_EXTRA;
+import static com.blacknebula.vocalfinder.service.VocalFinderIntentService.START_ACTION;
+import static com.blacknebula.vocalfinder.service.VocalFinderIntentService.isRunning;
+import static com.blacknebula.vocalfinder.util.Logger.Type.VOCAL_FINDER;
+
 public class MainActivity extends AppCompatActivity {
 
     @InjectView(R.id.pitchText)
@@ -45,12 +51,12 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.inject(this);
 
         IntentFilter filter = new IntentFilter();
-        filter.addAction(VocalFinderIntentService.SOUND_DETECTED_ACTION);
+        filter.addAction(SOUND_DETECTED_ACTION);
 
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if (VocalFinderIntentService.SOUND_DETECTED_ACTION.equals(intent.getAction())) {
+                if (SOUND_DETECTED_ACTION.equals(intent.getAction())) {
                     visualizeAudioData(intent);
                 }
             }
@@ -102,19 +108,19 @@ public class MainActivity extends AppCompatActivity {
             case 1: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    if (VocalFinderIntentService.isRunning) {
+                    if (isRunning) {
                         return;
                     }
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
-                    Logger.info(Logger.Type.VOCAL_FINDER, "Permission Granted!");
+                    Logger.info(VOCAL_FINDER, "Permission Granted!");
                     launchAudioDetection();
 
                 } else {
 
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
-                    Logger.warn(Logger.Type.VOCAL_FINDER, "Permission Denied!");
+                    Logger.warn(VOCAL_FINDER, "Permission Denied!");
                     finish();
                 }
                 return;
@@ -187,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void visualizeAudioData(Intent data) {
-        final Parcelable result = data.getParcelableExtra(VocalFinderIntentService.SOUND_PITCH_EXTRA);
+        final Parcelable result = data.getParcelableExtra(SOUND_PITCH_EXTRA);
         final float pitchInHz = Parcels.unwrap(result);
         runOnUiThread(new Runnable() {
             @Override
@@ -207,11 +213,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void launchAudioDetection() {
-        if (VocalFinderIntentService.isRunning) {
+        if (isRunning) {
             return;
         }
         final Intent intent = new Intent(this, VocalFinderIntentService.class);
-        intent.setAction(VocalFinderIntentService.START_ACTION);
+        intent.setAction(START_ACTION);
         startService(intent);
     }
 
