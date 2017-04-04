@@ -140,6 +140,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
         bindPreferenceSummaryToValue(findPreference("ringtone"));
         bindPreferenceSummaryToValue(findPreference("audioSensitivity"));
+        bindPreferenceSummaryToValue(findPreference("signalDuration"));
+        bindPreferenceSummaryToValue(findPreference("notificationEnd"));
 
         findPreference("enableVocalFinder").setOnPreferenceChangeListener(preferenceUpdateListener);
         findPreference("enableSaveEnergyMode").setOnPreferenceChangeListener(preferenceUpdateListener);

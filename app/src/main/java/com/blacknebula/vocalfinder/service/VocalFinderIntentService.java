@@ -26,9 +26,12 @@ import com.blacknebula.vocalfinder.activity.MainActivity;
 import com.blacknebula.vocalfinder.activity.SettingsActivity;
 import com.blacknebula.vocalfinder.util.Logger;
 import com.blacknebula.vocalfinder.util.PreferenceUtils;
+import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 
 import org.parceler.Parcels;
+
+import java.util.concurrent.TimeUnit;
 
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.AudioEvent;
@@ -66,6 +69,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
     private boolean isTorchOn;
     private Vibrator vibrator;
     private Ringtone ringtone;
+    private Stopwatch stopwatch;
 
     public VocalFinderIntentService() {
         super(VocalFinderIntentService.class.getSimpleName());
@@ -75,6 +79,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
     public void onCreate() {
         super.onCreate();
         isRunning = true;
+        stopwatch = Stopwatch.createUnstarted();
         sendNotification(getNotificationType());
     }
 
@@ -209,9 +214,8 @@ public class VocalFinderIntentService extends NonStopIntentService {
                     return;
                 }
 
-                final int minimalPitch = PreferenceUtils.asInt("audioSensitivity", 1400);
                 final boolean stopAlarmOnSoundEnd = shouldStopAlarmOnSoundEnd();
-                if (pitchInHz > minimalPitch) {
+                if (shouldStartAlarm(pitchInHz)) {
                     // add stop alarm action in notification
                     if (!stopAlarmOnSoundEnd) {
                         sendNotification(NotificationTypeEnum.ALARM);
@@ -228,6 +232,22 @@ public class VocalFinderIntentService extends NonStopIntentService {
         AudioProcessor p = new PitchProcessor(PitchProcessor.PitchEstimationAlgorithm.FFT_YIN, 22050, 1024, pdh);
         dispatcher.addAudioProcessor(p);
         new Thread(dispatcher, "Audio Dispatcher").start();
+    }
+
+    private boolean shouldStartAlarm(float pitchInHz) {
+        final int minimalPitch = PreferenceUtils.asInt("audioSensitivity", 1400);
+
+        if (pitchInHz < minimalPitch) {
+            stopwatch.reset();
+            return false;
+        }
+
+        if (!stopwatch.isRunning()) {
+            stopwatch.start();
+        }
+        final int signalDuration = PreferenceUtils.asInt("signalDuration", 0);
+        return stopwatch.elapsed(TimeUnit.SECONDS) >= signalDuration;
+
     }
 
     private boolean shouldStopAlarmOnSoundEnd() {

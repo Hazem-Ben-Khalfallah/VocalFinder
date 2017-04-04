@@ -36,9 +36,12 @@
     <string name="manual_stop_value">manual</string>
     <string name="sound_end_value">sound_end</string>
     <string name="pref_notification_end_mode_default">@string/sound_end_value</string>
-    <string name="pref_notification_end_mode_title">Notification end</string>
+    <string name="pref_notification_end_mode_title">Alert end</string>
     <string name="pref_notification_end_mode_summary">Define how the notification will be stopped</string>
     <string name="pitch_default_value">0</string>
+    <string name="pref_signal_duration_title">Signal duration</string>
+    <string name="pref_signal_duration_summary">How many seconds should the signal last to trigger the alarm</string>
+    <string name="pref_signal_duration_default">0</string>
 
     <string-array name="list_sensitivity_preference_entries">
         <item>normal human voice</item>
@@ -60,5 +63,19 @@
     <string-array name="list_notification_end_mode_preference_values">
         <item>@string/manual_stop_value</item>
         <item>@string/sound_end_value</item>
+    </string-array>
+
+    <string-array name="list_signal_duration_preference_entries">
+        <item>Disabled</item>
+        <item>1s</item>
+        <item>2s</item>
+        <item>3s</item>
+    </string-array>
+
+    <string-array name="list_signal_duration_preference_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
     </string-array>
 </resources>

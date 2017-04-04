@@ -50,6 +50,17 @@
             android:summary="@string/pref_audio_sensitivity_summary" />
 
         <ListPreference
+            android:key="signalDuration"
+            android:defaultValue="@string/pref_signal_duration_default"
+            android:dependency="enableVocalFinder"
+            android:entries="@array/list_signal_duration_preference_entries"
+            android:entryValues="@array/list_signal_duration_preference_values"
+            android:negativeButtonText="@null"
+            android:positiveButtonText="@null"
+            android:title="@string/pref_signal_duration_title"
+            android:summary="@string/pref_signal_duration_summary" />
+
+        <ListPreference
             android:key="notificationEnd"
             android:defaultValue="@string/pref_notification_end_mode_default"
             android:dependency="enableVocalFinder"
