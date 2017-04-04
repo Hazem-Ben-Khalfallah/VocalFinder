@@ -30,7 +30,7 @@ import butterknife.InjectView;
 
 public class MainActivity extends AppCompatActivity {
 
-    @InjectView(R.id.textView)
+    @InjectView(R.id.pitchText)
     TextView textView;
     @InjectView(R.id.snake)
     SnakeView snakeView;
