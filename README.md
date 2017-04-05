@@ -33,6 +33,18 @@ At the phone call end, the application will resume listening out for the voice s
 <img src="./screenshots/Screenshot_4.png" width="250" height="444">
 </p>
 
+## Change logs
+### version 1.1
+* Add preference in settings to control how to stop the alert: manually or on sound end
+* add action in notification to stop the alert
+* Add preference to control signal duration before triggering the alert
+### version 1.0
+* detect sound pitches
+* add 3 alert types: flash, vibration and ringtone
+* add save energy mode
+* detect incoming calls and put application on hold during the call
+* user can configure microphone sensitivity
+
 ## Special Thanks
 * contributors to  [Parceler](http://parceler.org/) library
 * contributors to [TarsosDSP](https://0110.be/tags/TarsosDSP) project
