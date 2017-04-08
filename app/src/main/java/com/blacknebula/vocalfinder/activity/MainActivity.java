@@ -168,7 +168,6 @@ public class MainActivity extends AppCompatActivity {
                 .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 
         if (hasFlash) {
-            PreferenceUtils.getPreferences().edit().putBoolean("enableFlashLight", true).apply();
             return;
         }
 
