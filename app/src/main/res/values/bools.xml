@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="enableVocalFinder_default">true</bool>
+    <bool name="enableSaveEnergyMode_default">false</bool>
+    <bool name="enableFlashLight_default">true</bool>
+    <bool name="enableVibration_default">true</bool>
+</resources>

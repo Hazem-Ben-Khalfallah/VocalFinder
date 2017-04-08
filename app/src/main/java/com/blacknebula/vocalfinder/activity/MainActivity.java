@@ -62,16 +62,14 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         registerReceiver(receiver, filter);
+
+        detectFlashSupport();
+        requestRecordAudioPermission();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        final boolean enableVocalFinder = PreferenceUtils.asBoolean("enableVocalFinder", false);
-        if (enableVocalFinder) {
-            detectFlashSupport();
-            requestRecordAudioPermission();
-        }
     }
 
     @Override
@@ -111,9 +109,7 @@ public class MainActivity extends AppCompatActivity {
                     if (isRunning) {
                         return;
                     }
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                    Logger.info(VOCAL_FINDER, "Permission Granted!");
+                    // permission was granted, yay! set app default params & launch detection
                     launchAudioDetection();
 
                 } else {
@@ -172,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
                 .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 
         if (hasFlash) {
+            PreferenceUtils.getPreferences().edit().putBoolean("enableFlashLight", true).apply();
             return;
         }
 

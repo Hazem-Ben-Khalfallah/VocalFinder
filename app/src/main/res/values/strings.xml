@@ -17,6 +17,7 @@
     <string name="pref_enable_flash_title">Flash light</string>
     <string name="pref_enable_flash_summary"> your phone will emit flash light in response to your whistle</string>
 
+    <string name="ringtone_default">content://settings/system/notification_sound</string>
     <string name="pref_title_ringtone">Ringtone</string>
     <string name="pref_ringtone_silent">Silent</string>
 
@@ -29,7 +30,6 @@
 
     <string name="pref_audio_sensitivity_title">Audio sensitivity</string>
     <string name="pref_audio_sensitivity_summary">Define your apps sensitivity level.</string>
-    <string name="pref_audio_sensitivity_default">1400</string>
     <string name="pref_settings">Settings</string>
     <string name="pref_enable_save_energy_mode_title">Save energy mode</string>
     <string name="pref_enable_save_energy_mode_summary">Detect sounds only when the screen of the phone is off.</string>
@@ -41,7 +41,6 @@
     <string name="pitch_default_value">0</string>
     <string name="pref_signal_duration_title">Signal duration</string>
     <string name="pref_signal_duration_summary">How many seconds should the signal last to trigger the alarm</string>
-    <string name="pref_signal_duration_default">0</string>
 
     <string-array name="list_sensitivity_preference_entries">
         <item>normal human voice</item>

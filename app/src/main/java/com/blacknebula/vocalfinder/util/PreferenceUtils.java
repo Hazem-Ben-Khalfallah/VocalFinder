@@ -20,15 +20,19 @@ public class PreferenceUtils {
         return sharedPreferences;
     }
 
-    public static String asString(String key, String defaultValue) {
+    public static String getString(String key, String defaultValue) {
         return getPreferences().getString(key, defaultValue);
     }
 
-    public static Boolean asBoolean(String key, Boolean defaultValue) {
+    public static Boolean getBoolean(String key, Boolean defaultValue) {
         return getPreferences().getBoolean(key, defaultValue);
     }
 
-    public static int asInt(String key, int defaultValue) {
+    public static int getInt(String key, int defaultValue) {
+        return getPreferences().getInt(key, defaultValue);
+    }
+
+    public static int getIntFromString(String key, int defaultValue) {
         return Integer.parseInt(getPreferences().getString(key, "" + defaultValue));
     }
 }

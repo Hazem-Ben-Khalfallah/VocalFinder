@@ -235,7 +235,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
     }
 
     private boolean shouldStartAlarm(float pitchInHz) {
-        final int minimalPitch = PreferenceUtils.asInt("audioSensitivity", 1400);
+        final int minimalPitch = PreferenceUtils.getIntFromString("audioSensitivity", getResources().getInteger(R.integer.pref_audio_sensitivity_default));
 
         if (pitchInHz < minimalPitch) {
             stopwatch.reset();
@@ -245,14 +245,14 @@ public class VocalFinderIntentService extends NonStopIntentService {
         if (!stopwatch.isRunning()) {
             stopwatch.start();
         }
-        final int signalDuration = PreferenceUtils.asInt("signalDuration", 0);
+        final int signalDuration = PreferenceUtils.getIntFromString("signalDuration", getResources().getInteger(R.integer.pref_signal_duration_default));
         return stopwatch.elapsed(TimeUnit.SECONDS) >= signalDuration;
 
     }
 
     private boolean shouldStopAlarmOnSoundEnd() {
         final String onSoundEndPrefValue = getResources().getString(R.string.sound_end_value);
-        final String notificationEnd = PreferenceUtils.asString("notificationEnd", onSoundEndPrefValue);
+        final String notificationEnd = PreferenceUtils.getString("notificationEnd", onSoundEndPrefValue);
         return onSoundEndPrefValue.equals(notificationEnd);
     }
 
@@ -288,20 +288,20 @@ public class VocalFinderIntentService extends NonStopIntentService {
      * @return boolean
      */
     private boolean skipSoundDetection() {
-        final boolean isEnabled = PreferenceUtils.asBoolean("enableVocalFinder", false);
-        final boolean isSaveEnergyMode = PreferenceUtils.asBoolean("enableSaveEnergyMode", false);
+        final boolean isEnabled = PreferenceUtils.getBoolean("enableVocalFinder", getResources().getBoolean(R.bool.enableVocalFinder_default));
+        final boolean isSaveEnergyMode = PreferenceUtils.getBoolean("enableSaveEnergyMode", getResources().getBoolean(R.bool.enableSaveEnergyMode_default));
         return !isEnabled ||
                 (isSaveEnergyMode && isScreenOn(VocalFinderApplication.getAppContext())) ||
                 isCallActive(VocalFinderApplication.getAppContext());
     }
 
     private NotificationTypeEnum getNotificationType() {
-        final boolean isEnabled = PreferenceUtils.asBoolean("enableVocalFinder", false);
+        final boolean isEnabled = PreferenceUtils.getBoolean("enableVocalFinder", getResources().getBoolean(R.bool.enableVocalFinder_default));
         if (!isEnabled) {
             return NotificationTypeEnum.APP_DISABLE;
         }
 
-        final boolean isSaveEnergyMode = PreferenceUtils.asBoolean("enableSaveEnergyMode", false);
+        final boolean isSaveEnergyMode = PreferenceUtils.getBoolean("enableSaveEnergyMode", getResources().getBoolean(R.bool.enableSaveEnergyMode_default));
         if (isSaveEnergyMode) {
             return NotificationTypeEnum.ENERGY_SAVE;
         }
@@ -343,7 +343,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
     }
 
     public void turnOnFlashLight() {
-        final boolean enableFlashLight = PreferenceUtils.asBoolean("enableFlashLight", false);
+        final boolean enableFlashLight = PreferenceUtils.getBoolean("enableFlashLight", getResources().getBoolean(R.bool.enableFlashLight_default));
         if (isTorchOn || !enableFlashLight)
             return;
         try {
@@ -378,7 +378,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
     }
 
     void startVibration() {
-        final boolean enableVibration = PreferenceUtils.asBoolean("enableVibration", false);
+        final boolean enableVibration = PreferenceUtils.getBoolean("enableVibration", getResources().getBoolean(R.bool.enableVibration_default));
         if (enableVibration) {
             final Vibrator vibrator = getVibrator();
             if (vibrator != null) {
@@ -396,7 +396,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
 
 
     void playRingtone() {
-        final String selectedRingtone = PreferenceUtils.asString("ringtone", "");
+        final String selectedRingtone = PreferenceUtils.getString("ringtone", getString(R.string.ringtone_default));
         if (!Strings.isNullOrEmpty(selectedRingtone) && (ringtone == null || !ringtone.isPlaying())) {
             final Uri path = Uri.parse(selectedRingtone);
             ringtone = RingtoneManager.getRingtone(getApplicationContext(), path);
