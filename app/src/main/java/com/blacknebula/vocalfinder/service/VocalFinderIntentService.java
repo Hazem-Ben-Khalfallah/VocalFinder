@@ -58,6 +58,8 @@ public class VocalFinderIntentService extends NonStopIntentService {
     public static final String SOUND_PITCH_EXTRA = "reply";
     private static final int NOTIFICATION_ID = 1;
 
+    private static final int MAX_VOLUME = -1;
+
     public static boolean isRunning;
     private static boolean isAlarmStarted;
     private static NotificationTypeEnum currentNotificationType;
@@ -69,10 +71,12 @@ public class VocalFinderIntentService extends NonStopIntentService {
     private String mCameraId;
     private boolean isTorchOn;
     private boolean isScreenBrightnessOn;
+    private boolean isVolumeMaxed;
     private Vibrator vibrator;
     private Ringtone ringtone;
     private Stopwatch stopwatch;
     private int screenBrightness;
+    private int currentVolume;
 
     public VocalFinderIntentService() {
         super(VocalFinderIntentService.class.getSimpleName());
@@ -268,6 +272,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
         isAlarmStarted = true;
 
         // start all kinds of alarms
+        maximizeVolume();
         playRingtone();
         turnOnFlashLight();
         startVibration();
@@ -277,10 +282,11 @@ public class VocalFinderIntentService extends NonStopIntentService {
 
     private void stopAlarm() {
         // stop all kinds of alarms
+        resetVolume();
         stopVibration();
         turnOffFlashLight();
         stopRingtone();
-        resetScreenBrightness(screenBrightness);
+        resetScreenBrightness();
         // change alarm status to false
         isAlarmStarted = false;
     }
@@ -427,13 +433,32 @@ public class VocalFinderIntentService extends NonStopIntentService {
         isScreenBrightnessOn = true;
     }
 
-    void resetScreenBrightness(int screenBrightness) {
+    void resetScreenBrightness() {
         if (!isScreenBrightnessOn) {
             return;
         }
 
         setScreenBrightness(screenBrightness);
         isScreenBrightnessOn = false;
+    }
+
+    void maximizeVolume() {
+        final boolean isEnabled = PreferenceUtils.getBoolean("maximizeVolume", getResources().getBoolean(R.bool.maximizeVolume_default));
+        if (isVolumeMaxed || !isEnabled) {
+            return;
+        }
+        currentVolume = getVolume();
+        setVolume(MAX_VOLUME);
+        isVolumeMaxed = true;
+    }
+
+    void resetVolume() {
+        if (!isVolumeMaxed) {
+            return;
+        }
+
+        setVolume(currentVolume);
+        isVolumeMaxed = false;
     }
 
 
@@ -470,6 +495,20 @@ public class VocalFinderIntentService extends NonStopIntentService {
                     brightnessValue
             );
         }
+    }
+
+    private int getVolume() {
+        final AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        return am.getStreamVolume(AudioManager.STREAM_RING);
+    }
+
+    private void setVolume(int volume) {
+        final AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        int value = volume == MAX_VOLUME ? am.getStreamMaxVolume(AudioManager.STREAM_RING) : volume;
+        am.setStreamVolume(
+                AudioManager.STREAM_RING,
+                value,
+                0);
     }
 
     private <T> void broadcastPitch(T replyMessage) {

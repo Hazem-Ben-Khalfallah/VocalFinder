@@ -45,7 +45,9 @@
     <string name="pref_signal_duration_title">Signal duration</string>
     <string name="pref_signal_duration_summary">How many seconds should the signal last to trigger the alarm</string>
     <string name="pref_maximize_screen_brightness_title">Screen brightness</string>
-    <string name="pref_maximize_screen_brightness_summary">Maximize screen brightness</string>
+    <string name="pref_maximize_screen_brightness_summary">Maximize screen brightness when alarm is on</string>
+    <string name="pref_maximize_volume_title">Volume</string>
+    <string name="pref_maximize_volume_summary">Maximize ringtone volume when alarm is on</string>
 
     <string-array name="list_sensitivity_preference_entries">
         <item>normal human voice</item>

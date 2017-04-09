@@ -40,6 +40,13 @@
             android:dependency="enableVocalFinder"
             android:ringtoneType="ringtone"
             android:title="@string/pref_title_ringtone" />
+
+        <SwitchPreference
+            android:key="maximizeVolume"
+            android:defaultValue="@bool/maximizeVolume_default"
+            android:dependency="enableVocalFinder"
+            android:summary="@string/pref_maximize_volume_summary"
+            android:title="@string/pref_maximize_volume_title" />
     </PreferenceCategory>
 
     <PreferenceCategory
