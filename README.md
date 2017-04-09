@@ -10,6 +10,7 @@ Audio sensitivity is configurable to meet our preferences.
 ## How does it work?
 Start the application. Choose the way in which your lost phone will inform you about its position. You have multiple choices in app settings:
 - Ringtone: Choose the sound notification which will be played when the phone is found.
+- Configure Ringtone volume when alarm is on.
 - flash light: Your phone will start the flash lamp of the camera, which will make finding the phone easier and faster.
 - vibration: The telephone will start vibrating at the moment of whistle detection.
 - save battery: you can set listening out for the whistle only while the screen of the phone is off.
@@ -18,6 +19,7 @@ At the phone call end, the application will resume listening out for the voice s
 - configure the microphone sensitivity. The effectiveness of whistle detection depends on built-in microphone and number of noises and sounds of surrounding.
 - configure how the alert should stop. Should it stop at the voice signal end or should it continue until being stopped manually.
 - configure signal minimum duration before triggering the alert.
+- configure screen Brightness when alarm is on.
 
 ## Snapshots
 <p>
@@ -34,6 +36,8 @@ At the phone call end, the application will resume listening out for the voice s
 </p>
 
 ## Change logs
+### version 1.2
+* Add preference to maximize screen brightness and ringtone volume when alarm is on
 ### version 1.1
 * Add preference in settings to control how to stop the alert: manually or on sound end
 * add action in notification to stop the alert
