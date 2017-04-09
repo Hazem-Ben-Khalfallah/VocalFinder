@@ -17,6 +17,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
 import android.os.Vibrator;
+import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.view.Display;
 
@@ -67,9 +68,11 @@ public class VocalFinderIntentService extends NonStopIntentService {
     private CameraManager mCameraManager;
     private String mCameraId;
     private boolean isTorchOn;
+    private boolean isScreenBrightnessOn;
     private Vibrator vibrator;
     private Ringtone ringtone;
     private Stopwatch stopwatch;
+    private int screenBrightness;
 
     public VocalFinderIntentService() {
         super(VocalFinderIntentService.class.getSimpleName());
@@ -268,13 +271,16 @@ public class VocalFinderIntentService extends NonStopIntentService {
         playRingtone();
         turnOnFlashLight();
         startVibration();
+        maximizeScreenBrightness();
     }
+
 
     private void stopAlarm() {
         // stop all kinds of alarms
         stopVibration();
         turnOffFlashLight();
         stopRingtone();
+        resetScreenBrightness(screenBrightness);
         // change alarm status to false
         isAlarmStarted = false;
     }
@@ -407,6 +413,62 @@ public class VocalFinderIntentService extends NonStopIntentService {
     void stopRingtone() {
         if (ringtone != null && ringtone.isPlaying()) {
             ringtone.stop();
+        }
+    }
+
+    void maximizeScreenBrightness() {
+        final boolean isEnabled = PreferenceUtils.getBoolean("maximizeScreenBrightness", getResources().getBoolean(R.bool.maximizeScreenBrightness_default));
+        if (isScreenBrightnessOn || !isEnabled) {
+            return;
+        }
+
+        screenBrightness = getScreenBrightness();
+        setScreenBrightness(255);
+        isScreenBrightnessOn = true;
+    }
+
+    void resetScreenBrightness(int screenBrightness) {
+        if (!isScreenBrightnessOn) {
+            return;
+        }
+
+        setScreenBrightness(screenBrightness);
+        isScreenBrightnessOn = false;
+    }
+
+
+    /**
+     * Get the screen current brightness
+     */
+    private int getScreenBrightness() {
+        return Settings.System.getInt(
+                VocalFinderApplication.getAppContext().getContentResolver(),
+                Settings.System.SCREEN_BRIGHTNESS,
+                0
+        );
+    }
+
+    /**
+     * Change the screen brightness
+     *
+     * @param brightnessValue value between 0..255
+     */
+    private void setScreenBrightness(int brightnessValue) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.System.canWrite(VocalFinderApplication.getAppContext())) {
+                // disable maximizeScreenBrightness
+                PreferenceUtils.getPreferences().edit().putBoolean("maximizeScreenBrightness", false).apply();
+                return;
+            }
+        }
+
+        // Make sure brightness value between 0 to 255
+        if (brightnessValue >= 0 && brightnessValue <= 255) {
+            Settings.System.putInt(
+                    VocalFinderApplication.getAppContext().getContentResolver(),
+                    Settings.System.SCREEN_BRIGHTNESS,
+                    brightnessValue
+            );
         }
     }
 

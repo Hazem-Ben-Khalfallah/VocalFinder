@@ -22,8 +22,11 @@
     <string name="pref_ringtone_silent">Silent</string>
 
 
-    <string name="request_permission_title">Permission needed</string>
-    <string name="request_permission_message">Permission to record audio is needed for this app</string>
+    <string name="record_audio_request_permission_title">Record audio permission</string>
+    <string name="record_audio_request_permission_message">Permission to record audio is needed for this app</string>
+
+    <string name="write_settings_request_permission_title">Write settings permission</string>
+    <string name="write_settings_request_permission_message">Permission to write settings is needed for this app</string>
 
     <string name="flash_not_supported_title">Feature not supported</string>
     <string name="flash_not_supported_message">Flash light is not supported in this device</string>
@@ -41,6 +44,8 @@
     <string name="pitch_default_value">0</string>
     <string name="pref_signal_duration_title">Signal duration</string>
     <string name="pref_signal_duration_summary">How many seconds should the signal last to trigger the alarm</string>
+    <string name="pref_maximize_screen_brightness_title">Screen brightness</string>
+    <string name="pref_maximize_screen_brightness_summary">Maximize screen brightness</string>
 
     <string-array name="list_sensitivity_preference_entries">
         <item>normal human voice</item>

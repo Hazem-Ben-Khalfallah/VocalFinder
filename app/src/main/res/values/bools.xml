@@ -4,4 +4,5 @@
     <bool name="enableSaveEnergyMode_default">false</bool>
     <bool name="enableFlashLight_default">true</bool>
     <bool name="enableVibration_default">true</bool>
+    <bool name="maximizeScreenBrightness_default">true</bool>
 </resources>

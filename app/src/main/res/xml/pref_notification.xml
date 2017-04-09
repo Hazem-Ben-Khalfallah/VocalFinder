@@ -27,6 +27,13 @@
             android:summary="@string/pref_enable_flash_summary"
             android:title="@string/pref_enable_flash_title" />
 
+        <SwitchPreference
+            android:key="maximizeScreenBrightness"
+            android:defaultValue="@bool/maximizeScreenBrightness_default"
+            android:dependency="enableVocalFinder"
+            android:summary="@string/pref_maximize_screen_brightness_summary"
+            android:title="@string/pref_maximize_screen_brightness_title" />
+
         <RingtonePreference
             android:key="ringtone"
             android:defaultValue="@string/ringtone_default"

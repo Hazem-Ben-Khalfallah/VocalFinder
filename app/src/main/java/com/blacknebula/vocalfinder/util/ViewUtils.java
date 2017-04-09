@@ -68,11 +68,11 @@ public class ViewUtils {
     }
 
     public static AlertDialog openDialog(Context context, int title, int message, onClickListener onClickListener) {
-        return openDialog(context, title, message, android.R.string.ok, android.R.string.no, R.mipmap.ic_action_info, onClickListener);
+        return openDialog(context, title, message, android.R.string.ok, android.R.string.no, R.mipmap.ic_info_outline, onClickListener);
     }
 
     public static AlertDialog openDialog(Context context, int title, int message, int positiveText, int negativeText, onClickListener onClickListener) {
-        return openDialog(context, title, message, positiveText, negativeText, R.mipmap.ic_action_info, onClickListener);
+        return openDialog(context, title, message, positiveText, negativeText, R.mipmap.ic_info_outline, onClickListener);
     }
 
     public static AlertDialog openDialog(Context context, int title, int message, int positiveText, int negativeText, int icon, final onClickListener onClickListener) {

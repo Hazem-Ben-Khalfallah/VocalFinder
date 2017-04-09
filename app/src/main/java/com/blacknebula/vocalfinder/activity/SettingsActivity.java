@@ -16,6 +16,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
+import android.provider.Settings;
 import android.support.v7.app.ActionBar;
 import android.text.TextUtils;
 import android.view.MenuItem;
@@ -23,8 +24,12 @@ import android.view.MenuItem;
 import com.blacknebula.vocalfinder.R;
 import com.blacknebula.vocalfinder.VocalFinderApplication;
 import com.blacknebula.vocalfinder.service.VocalFinderIntentService;
+import com.blacknebula.vocalfinder.util.Logger;
+import com.blacknebula.vocalfinder.util.PreferenceUtils;
+import com.blacknebula.vocalfinder.util.ViewUtils;
 
 import static com.blacknebula.vocalfinder.service.VocalFinderIntentService.PREFERENCES_UPDATE_ACTION;
+import static com.blacknebula.vocalfinder.util.Logger.Type.VOCAL_FINDER;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -96,11 +101,20 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             final Intent preferencesUpdateIntent = new Intent(VocalFinderApplication.getAppContext(), VocalFinderIntentService.class);
             preferencesUpdateIntent.setAction(PREFERENCES_UPDATE_ACTION);
             VocalFinderApplication.getAppContext().startService(preferencesUpdateIntent);
-
             return true;
         }
     };
 
+    private Preference.OnPreferenceChangeListener preferenceEnableWriteSettingsListener = new Preference.OnPreferenceChangeListener() {
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object value) {
+            final Boolean enabled = (Boolean) value;
+            if (enabled) {
+                requestWriteSettingsPermission();
+            }
+            return true;
+        }
+    };
 
     /**
      * Helper method to determine if the device has an extra-large screen. For
@@ -131,6 +145,33 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 .getString(preference.getKey(), ""));
     }
 
+    private void requestWriteSettingsPermission() {
+        //check API version, do nothing if API version < 23!
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.System.canWrite(VocalFinderApplication.getAppContext())) {
+                ViewUtils.openDialog(this, R.string.write_settings_request_permission_title, R.string.write_settings_request_permission_message, new ViewUtils.onClickListener() {
+                    @Override
+                    public void onPositiveClick() {
+                        openManageWriteSettingsActivity();
+                    }
+
+                    @Override
+                    public void onNegativeClick() {
+                        Logger.warn(VOCAL_FINDER, "%s: Permission Denied!", "Write settings");
+                        // disable maximizeScreenBrightness
+                        PreferenceUtils.getPreferences().edit().putBoolean("maximizeScreenBrightness", false).apply();
+                    }
+                });
+
+            }
+        }
+    }
+
+    private void openManageWriteSettingsActivity() {
+        final Intent grantIntent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+        startActivity(grantIntent);
+    }
+
     @Override
     @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,6 +186,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
         findPreference("enableVocalFinder").setOnPreferenceChangeListener(preferenceUpdateListener);
         findPreference("enableSaveEnergyMode").setOnPreferenceChangeListener(preferenceUpdateListener);
+
+        findPreference("maximizeScreenBrightness").setOnPreferenceChangeListener(preferenceEnableWriteSettingsListener);
     }
 
     /**
