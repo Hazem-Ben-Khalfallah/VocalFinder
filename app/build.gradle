@@ -51,4 +51,5 @@ dependencies {
     //parceler
     compile 'org.parceler:parceler-api:1.1.6'
     annotationProcessor "org.parceler:parceler:1.1.6"
+    compile 'com.github.MAXDeliveryNG:slideview:1.0.0'
 }

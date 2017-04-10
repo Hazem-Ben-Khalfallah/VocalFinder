@@ -23,6 +23,7 @@ import android.view.Display;
 
 import com.blacknebula.vocalfinder.R;
 import com.blacknebula.vocalfinder.VocalFinderApplication;
+import com.blacknebula.vocalfinder.activity.AlarmActivity;
 import com.blacknebula.vocalfinder.activity.MainActivity;
 import com.blacknebula.vocalfinder.activity.SettingsActivity;
 import com.blacknebula.vocalfinder.util.Logger;
@@ -77,6 +78,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
     private Stopwatch stopwatch;
     private int screenBrightness;
     private int currentVolume;
+    private boolean isAlarmActivityOpened;
 
     public VocalFinderIntentService() {
         super(VocalFinderIntentService.class.getSimpleName());
@@ -277,6 +279,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
         turnOnFlashLight();
         startVibration();
         maximizeScreenBrightness();
+        openAlarmActivity();
     }
 
 
@@ -287,6 +290,7 @@ public class VocalFinderIntentService extends NonStopIntentService {
         turnOffFlashLight();
         stopRingtone();
         resetScreenBrightness();
+        broadcastStopAlarm();
         // change alarm status to false
         isAlarmStarted = false;
     }
@@ -459,6 +463,29 @@ public class VocalFinderIntentService extends NonStopIntentService {
 
         setVolume(currentVolume);
         isVolumeMaxed = false;
+    }
+
+    private void openAlarmActivity() {
+        // skip if activity already opened or alarm is configured to stop on sound end
+        if (isAlarmActivityOpened || shouldStopAlarmOnSoundEnd()) {
+            return;
+        }
+
+        isAlarmActivityOpened = true;
+        final Intent intent = new Intent(VocalFinderApplication.getAppContext(), AlarmActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
+
+    private <T> void broadcastStopAlarm() {
+        if (!isAlarmActivityOpened) {
+            return;
+        }
+
+        final Intent intent = new Intent();
+        intent.setAction(ALARM_STOP_ACTION);
+        sendBroadcast(intent);
+        isAlarmActivityOpened = false;
     }
 
 
