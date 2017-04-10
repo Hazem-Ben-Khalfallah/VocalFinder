@@ -36,6 +36,9 @@ At the phone call end, the application will resume listening out for the voice s
 </p>
 
 ## Change logs
+### version 1.3
+* Add stop alarm activity with a stop alarm slider
+* wake up device when alarm is on
 ### version 1.2
 * Add preference to maximize screen brightness and ringtone volume when alarm is on
 ### version 1.1

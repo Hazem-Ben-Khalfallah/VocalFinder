@@ -11,14 +11,22 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.blacknebula.vocalfinder.activity.AlarmActivity">
 
-    <ng.max.slideview.SlideView
-        android:id="@+id/stopAlarm"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:animateSlideText="true"
-        app:buttonBackgroundColor="@color/button_color_default"
-        app:slideBackgroundColor="@color/slider_color_default"
-        app:slideText="@string/stop_alarm"
-        app:slideTextColor="@color/stroke_color_default" />
+        android:layout_height="0dip"
+        android:layout_weight="1"
+        android:gravity="center|bottom"
+        android:orientation="vertical">
+
+        <ng.max.slideview.SlideView
+            android:id="@+id/stopAlarm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:animateSlideText="true"
+            app:buttonBackgroundColor="@color/button_color_default"
+            app:slideBackgroundColor="@color/slider_color_default"
+            app:slideText="@string/stop_alarm"
+            app:slideTextColor="@color/stroke_color_default" />
+    </LinearLayout>
 
 </LinearLayout>
