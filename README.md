@@ -1,4 +1,4 @@
-<img src="./screenshots/logo.png" width="50" height="50">
+![VocalFinder](https://socialify.git.ci/Hazem-Ben-Khalfallah/VocalFinder/image?description=1&descriptionEditable=Android%20app%20to%20find%20your%20phone%20by%20responding%20to%20a%20sound%20you%20have%20emitted%3A%20whistle%2C%20voice%2C%20etc.&forks=1&language=1&logo=https%3A%2F%2Fgithub.com%2FHazem-Ben-Khalfallah%2FVocalFinder%2Fraw%2Fmaster%2Fscreenshots%2Flogo.png&owner=1&pattern=Circuit%20Board&stargazers=1&theme=Light)
 
 # Vocal finder
 
